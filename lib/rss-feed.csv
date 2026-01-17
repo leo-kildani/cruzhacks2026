@@ -1,0 +1,9 @@
+outlet, url
+CNN,http://rss.cnn.com/rss/cnn_us.rss
+NYT,https://rss.nytimes.com/services/xml/rss/nyt/US.xml
+FOX,https://moxie.foxnews.com/google-publisher/politics.xml
+WP,https://www.washingtonpost.com/arcio/rss/category/politics/?itid=lk_inline_manual_2
+AP,https://rsshub.app/apnews/topics/politics
+ABC,https://abcnews.go.com/abcnews/usheadlines
+WSJ,https://feeds.content.dowjones.io/public/rss/RSSUSnews
+LAT,https://www.latimes.com/nation/rss2.0.xml
