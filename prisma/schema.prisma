@@ -27,4 +27,38 @@ model Headlines {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  publicOpinion    Public_Opinion?
+  headlineSources  HeadlineSource[]
+}
+
+model HeadlineSource {
+  id            String    @id @default(uuid())
+  headlineId    String
+  url           String
+  title         String
+  source        String
+  biasRating    String
+  biasAnalysis  String?
+  excerpt       String?
+  publishedDate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  headline      Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
+
+  @@index([headlineId])
+}
+
+model Public_Opinion {
+  id              String   @id @default(uuid())
+  summary         String   @db.Text
+  totalComments   Int
+  videosProcessed Int
+
+  headlineId      String   @unique
+  headline        Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

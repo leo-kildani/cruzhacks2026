@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, ExternalLink, Loader2 } from "lucide-react";
+import { X, ExternalLink, Loader2, Users, MessageSquare, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Headline } from "@/components/headlines-section";
 
@@ -13,6 +13,13 @@ interface Source {
   bias_rating: string;
   bias_analysis: string;
   excerpt: string;
+}
+
+interface PublicOpinion {
+  summary: string;
+  totalComments: number;
+  videosProcessed: number;
+  cached: boolean;
 }
 
 interface HeadlineSourcesModalProps {
@@ -104,6 +111,12 @@ export function HeadlineSourcesModal({
   const [error, setError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
 
+  // Public opinion state
+  const [publicOpinion, setPublicOpinion] = useState<PublicOpinion | null>(null);
+  const [publicOpinionLoading, setPublicOpinionLoading] = useState(false);
+  const [publicOpinionError, setPublicOpinionError] = useState<string | null>(null);
+  const [showPublicOpinion, setShowPublicOpinion] = useState(false);
+
   const fetchSources = async () => {
     if (hasFetched) return;
 
@@ -133,6 +146,32 @@ export function HeadlineSourcesModal({
       console.error("Error fetching sources:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPublicOpinion = async () => {
+    if (publicOpinion) return; // Already fetched
+
+    setPublicOpinionLoading(true);
+    setPublicOpinionError(null);
+    setShowPublicOpinion(true);
+
+    try {
+      const response = await fetch(`/api/headlines/${headline.id}/public-opinion`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fetch public opinion");
+      }
+
+      const data: PublicOpinion = await response.json();
+      setPublicOpinion(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load public opinion. Please try again.";
+      setPublicOpinionError(message);
+      console.error("Error fetching public opinion:", err);
+    } finally {
+      setPublicOpinionLoading(false);
     }
   };
 
@@ -231,6 +270,89 @@ export function HeadlineSourcesModal({
                   <SourceCard key={`${source.url}-${index}`} source={source} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Public Opinion Section */}
+          {!showPublicOpinion && !loading && (
+            <div className="mt-6 pt-4 border-t">
+              <Button
+                onClick={fetchPublicOpinion}
+                className="w-full gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+                size="lg"
+              >
+                <Users className="h-5 w-5" />
+                Read Public Opinion
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                See what people are saying about this topic on YouTube
+              </p>
+            </div>
+          )}
+
+          {showPublicOpinion && (
+            <div className="mt-6 pt-4 border-t space-y-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-brand-600" />
+                <h3 className="text-sm font-medium">Public Opinion</h3>
+              </div>
+
+              {publicOpinionLoading && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Analyzing public sentiment...
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This may take a moment
+                  </p>
+                </div>
+              )}
+
+              {publicOpinionError && (
+                <div className="text-center py-6 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-red-600 text-sm">{publicOpinionError}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setPublicOpinion(null);
+                      fetchPublicOpinion();
+                    }}
+                    className="mt-3"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              )}
+
+              {publicOpinion && !publicOpinionLoading && !publicOpinionError && (
+                <div className="space-y-4">
+                  {/* Stats */}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Video className="h-4 w-4" />
+                      {publicOpinion.videosProcessed} videos
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MessageSquare className="h-4 w-4" />
+                      {publicOpinion.totalComments.toLocaleString()} comments
+                    </span>
+                    {publicOpinion.cached && (
+                      <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                        Cached
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-muted/50 rounded-lg p-4 border">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {publicOpinion.summary}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
