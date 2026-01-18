@@ -28,6 +28,7 @@ model Headlines {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  sources     HeadlineSource[]
   publicOpinion    Public_Opinion?
   headlineSources  HeadlineSource[]
 }
@@ -49,4 +50,17 @@ model HeadlineSource {
   updatedAt     DateTime  @updatedAt
 
   @@index([headlineId])
+}
+
+model Public_Opinion {
+  id              String   @id @default(uuid())
+  summary         String   @db.Text
+  totalComments   Int
+  videosProcessed Int
+
+  headlineId      String   @unique
+  headline        Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
