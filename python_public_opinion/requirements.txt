@@ -1,0 +1,4 @@
+fastapi
+uvicorn[standard]
+youtube-comment-downloader
+openai>=1.0.0
