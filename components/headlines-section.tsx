@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { HeadlineSourcesModal } from "@/components/headline-sources-modal";
 
 // Type for headline from database
 export interface Headline {
@@ -49,12 +50,21 @@ function formatRelativeTime(dateString: string): string {
 }
 
 // Individual headline card with expandable description
-function HeadlineCard({ headline }: { headline: Headline }) {
+function HeadlineCard({
+  headline,
+  onClick,
+}: {
+  headline: Headline;
+  onClick: () => void;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isLongDescription = headline.description.length > 120;
 
   return (
-    <Card className="group transition-all hover:shadow-md hover:border-brand-600/30">
+    <Card
+      className="group transition-all hover:shadow-md hover:border-brand-600/30 cursor-pointer"
+      onClick={onClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-brand-600 uppercase tracking-wider">
@@ -74,7 +84,10 @@ function HeadlineCard({ headline }: { headline: Headline }) {
         </CardDescription>
         {isLongDescription && (
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
             className="mt-2 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
           >
             {isExpanded ? "Show Less" : "Show More"}
@@ -92,6 +105,7 @@ export function HeadlinesSection({
   const [headlines, setHeadlines] = useState<Headline[]>(initialHeadlines);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
+  const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
 
   const loadMore = async () => {
     if (loading || !hasMore) return;
@@ -134,9 +148,21 @@ export function HeadlinesSection({
     <div className="space-y-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {headlines.map((headline) => (
-          <HeadlineCard key={headline.id} headline={headline} />
+          <HeadlineCard
+            key={headline.id}
+            headline={headline}
+            onClick={() => setSelectedHeadline(headline)}
+          />
         ))}
       </div>
+
+      {selectedHeadline && (
+        <HeadlineSourcesModal
+          headline={selectedHeadline}
+          isOpen={!!selectedHeadline}
+          onClose={() => setSelectedHeadline(null)}
+        />
+      )}
 
       {hasMore && (
         <div className="flex justify-center">
