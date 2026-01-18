@@ -3,6 +3,7 @@ from itertools import islice
 from typing import List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from youtube_comment_downloader import YoutubeCommentDownloader, SORT_BY_POPULAR
 from openai import OpenAI
@@ -11,6 +12,15 @@ app = FastAPI(
     title="Public Opinion Analyzer",
     description="Extracts YouTube comments and synthesizes public opinion using AI",
     version="1.0.0",
+)
+
+# Add CORS middleware to allow requests from Vercel
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins; can restrict to your Vercel domain if needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize OpenAI client
