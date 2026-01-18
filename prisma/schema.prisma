@@ -8,59 +8,52 @@ datasource db {
 }
 
 model Article {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  link        String   @unique
+  link        String    @unique
   publishedAt DateTime?
-  processed   Boolean  @default(false)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  processed   Boolean   @default(false)
 }
 
 model Headlines {
-  id          String   @id @default(uuid())
-  headline    String
-  description String
-  date        DateTime
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  sources     HeadlineSource[]
-  publicOpinion    Public_Opinion?
+  id            String           @id @default(uuid())
+  headline      String
+  description   String
+  date          DateTime
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  publicOpinion Public_Opinion?
   headlineSources  HeadlineSource[]
+
 }
 
 model HeadlineSource {
   id            String    @id @default(uuid())
   headlineId    String
-  headline      Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
-
   url           String
   title         String
-  source        String    // domain name (e.g., "bbc.com")
-  biasRating    String    // left, left-center, center, right-center, right, unknown
-  biasAnalysis  String?   @db.Text
-  excerpt       String?   @db.Text
+  source        String
+  biasRating    String
+  biasAnalysis  String?
+  excerpt       String?
   publishedDate DateTime?
-
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  headline      Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
 
   @@index([headlineId])
 }
 
 model Public_Opinion {
-  id              String   @id @default(uuid())
-  summary         String   @db.Text
+  id              String    @id @default(uuid())
+  summary         String
   totalComments   Int
   videosProcessed Int
-
-  headlineId      String   @unique
+  headlineId      String    @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   headline        Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }
