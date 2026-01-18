@@ -35,30 +35,18 @@ model Headlines {
 model HeadlineSource {
   id            String    @id @default(uuid())
   headlineId    String
+  headline      Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
+
   url           String
   title         String
-  source        String
-  biasRating    String
-  biasAnalysis  String?
-  excerpt       String?
+  source        String    // domain name (e.g., "bbc.com")
+  biasRating    String    // left, left-center, center, right-center, right, unknown
+  biasAnalysis  String?   @db.Text
+  excerpt       String?   @db.Text
   publishedDate DateTime?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  headline      Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
-
   @@index([headlineId])
-}
-
-model Public_Opinion {
-  id              String   @id @default(uuid())
-  summary         String   @db.Text
-  totalComments   Int
-  videosProcessed Int
-
-  headlineId      String   @unique
-  headline        Headlines @relation(fields: [headlineId], references: [id], onDelete: Cascade)
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }
