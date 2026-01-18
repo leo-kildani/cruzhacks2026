@@ -1,4 +1,4 @@
-import { ArrowRight, Scale, Newspaper, Users, FileText, ChevronRight } from "lucide-react";
+import { ArrowRight, Scale, Users, FileText, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,54 +8,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { HeadlinesSection, Headline } from "@/components/headlines-section";
 
-// Placeholder news data - will be replaced with real data
-const placeholderNews = [
-  {
-    id: 1,
-    title: "Breaking: Major Policy Announcement",
-    source: "Multiple Sources",
-    timestamp: "2 hours ago",
-    category: "Policy",
-  },
-  {
-    id: 2,
-    title: "Economic Report Shows Mixed Signals",
-    source: "Multiple Sources",
-    timestamp: "4 hours ago",
-    category: "Economy",
-  },
-  {
-    id: 3,
-    title: "Senate Committee Advances New Bill",
-    source: "Multiple Sources",
-    timestamp: "6 hours ago",
-    category: "Congress",
-  },
-  {
-    id: 4,
-    title: "State Elections Update",
-    source: "Multiple Sources",
-    timestamp: "8 hours ago",
-    category: "Elections",
-  },
-  {
-    id: 5,
-    title: "International Relations Briefing",
-    source: "Multiple Sources",
-    timestamp: "10 hours ago",
-    category: "Foreign Policy",
-  },
-  {
-    id: 6,
-    title: "Infrastructure Bill Progress",
-    source: "Multiple Sources",
-    timestamp: "12 hours ago",
-    category: "Legislation",
-  },
-];
+export default async function Home() {
+  // Fetch the latest 6 headlines and total count from the database
+  const [headlinesData, totalCount] = await Promise.all([
+    prisma.headlines.findMany({
+      take: 6,
+      orderBy: { date: 'desc' },
+    }),
+    prisma.headlines.count(),
+  ]);
 
-export default function Home() {
+  // Serialize headlines for client component (convert Date to string)
+  const headlines: Headline[] = headlinesData.map((h) => ({
+    id: h.id,
+    headline: h.headline,
+    description: h.description,
+    date: h.date.toISOString(),
+    createdAt: h.createdAt.toISOString(),
+    updatedAt: h.updatedAt.toISOString(),
+  }));
+
+  const hasMore = headlines.length < totalCount;
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -148,34 +124,10 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {placeholderNews.map((article) => (
-              <Card
-                key={article.id}
-                className="group cursor-pointer transition-all hover:shadow-md hover:border-brand-600/30"
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-brand-600 uppercase tracking-wider">
-                      {article.category}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {article.timestamp}
-                    </span>
-                  </div>
-                  <CardTitle className="text-lg leading-snug group-hover:text-brand-700 transition-colors">
-                    {article.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="flex items-center gap-2">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
-                    {article.source}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <HeadlinesSection
+            initialHeadlines={headlines}
+            initialHasMore={hasMore}
+          />
         </div>
       </section>
 
