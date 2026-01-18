@@ -37,6 +37,30 @@ const biasColors: Record<string, { bg: string; text: string; label: string }> = 
   "unknown": { bg: "bg-gray-400", text: "text-white", label: "Unknown" },
 };
 
+// Extract neutral summary from bias analysis text
+function extractNeutralSummary(biasAnalysis: string): string | null {
+  if (!biasAnalysis) return null;
+
+  // Look for patterns like "**Neutral Summary**" or "Neutral Summary:" or similar
+  const patterns = [
+    /\*\*Neutral Summary[:\s]*\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
+    /Neutral Summary[:\s]*([\s\S]*?)(?=\n\n|\*\*|$)/i,
+    /Summary[:\s]*([\s\S]*?)(?=\n\n|\*\*|$)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = biasAnalysis.match(pattern);
+    if (match && match[1]) {
+      const summary = match[1].trim();
+      if (summary.length > 20) {
+        return summary;
+      }
+    }
+  }
+
+  return null;
+}
+
 function BiasTag({ rating }: { rating: string }) {
   const normalizedRating = rating.toLowerCase();
   const colors = biasColors[normalizedRating] || biasColors.unknown;
@@ -52,6 +76,7 @@ function BiasTag({ rating }: { rating: string }) {
 
 function SourceCard({ source }: { source: Source }) {
   const [showFullAnalysis, setShowFullAnalysis] = useState(false);
+  const neutralSummary = extractNeutralSummary(source.bias_analysis);
 
   return (
     <div className="border rounded-lg p-4 space-y-3 hover:border-brand-600/30 transition-colors">
@@ -76,9 +101,9 @@ function SourceCard({ source }: { source: Source }) {
         <BiasTag rating={source.bias_rating} />
       </div>
 
-      {source.excerpt && (
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {source.excerpt.substring(0, 200)}...
+      {neutralSummary && (
+        <p className="text-sm text-muted-foreground">
+          {neutralSummary}
         </p>
       )}
 
@@ -128,6 +153,7 @@ export function HeadlineSourcesModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          headlineId: headline.id,
           headline: headline.headline,
           description: headline.description,
           date: headline.date,
