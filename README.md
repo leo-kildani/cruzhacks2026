@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```bash
+YOUTUBE_API_KEY=your_youtube_api_key_here
+```
+
+You can obtain a YouTube Data API key from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
 ## Getting Started
 
 First, run the development server:
